@@ -1,16 +1,41 @@
-# React + Vite
+# AI-Powered ATS Resume Analyzer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An AI-powered Applicant Tracking System (ATS) that analyzes a candidate's resume against a job description and provides an ATS compatibility score.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Resume upload
+- Job description input
+- ATS compatibility score
+- Matched skills detection
+- Missing skills detection
+- Resume analysis
+- PDF report generation
+- User-friendly dashboard
 
-## React Compiler
+## Technologies Used
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Frontend
+- React.js
+- Vite
+- JavaScript
+- HTML
+- CSS
 
-## Expanding the ESLint configuration
+### Backend
+- Node.js
+- Express.js
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Other Tools
+- Git
+- GitHub
+- VS Code
+
+## How to Run
+
+### Frontend
+
+```bash
+cd client
+npm install
+npm run dev
