@@ -183,24 +183,3 @@
   }
 }
 
-/* Day 1 - ATS Dashboard UI Enhancement */
-
-body {
-  background: #f4f7fb;
-}
-
-h1 {
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-button {
-  border-radius: 8px;
-  font-weight: 600;
-  transition: 0.2s ease;
-}
-
-button:hover {
-  transform: translateY(-1px);
-  opacity: 0.95;
-}
