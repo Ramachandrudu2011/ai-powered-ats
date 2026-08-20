@@ -9,12 +9,20 @@ function UploadResume() {
   const [matchedSkills, setMatchedSkills] = useState([]);
   const [missingSkills, setMissingSkills] = useState([]);
   const [suggestion, setSuggestion] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleUpload = async () => {
     if (!file) {
       alert("Please select a resume!");
       return;
     }
+
+    if (!jobDescription.trim()) {
+      alert("Please enter the job description!");
+      return;
+    }
+
+    setLoading(true);
 
     const formData = new FormData();
     formData.append("resume", file);
@@ -57,7 +65,9 @@ function UploadResume() {
         }
       });
 
-      if (atsScore > 100) atsScore = 100;
+      if (atsScore > 100) {
+        atsScore = 100;
+      }
 
       setScore(atsScore);
       setMatchedSkills(matched);
@@ -69,11 +79,15 @@ function UploadResume() {
             missing.join(", ")
         );
       } else {
-        setSuggestion("Excellent! Your resume matches the job description.");
+        setSuggestion(
+          "Excellent! Your resume matches the job description."
+        );
       }
     } catch (err) {
       console.error(err);
-      alert("Upload failed");
+      alert("Upload failed. Please make sure the server is running.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,10 +101,10 @@ function UploadResume() {
     doc.text(`ATS Score: ${score}/100`, 20, 40);
 
     doc.text("Matched Skills:", 20, 60);
-    doc.text(matchedSkills.join(", "), 20, 70);
+    doc.text(matchedSkills.join(", ") || "None", 20, 70);
 
     doc.text("Missing Skills:", 20, 90);
-    doc.text(missingSkills.join(", "), 20, 100);
+    doc.text(missingSkills.join(", ") || "None", 20, 100);
 
     doc.text("Suggestion:", 20, 120);
     doc.text(suggestion, 20, 130);
@@ -99,86 +113,143 @@ function UploadResume() {
   };
 
   return (
-  <div className="container mt-5">
-    <div className="card shadow p-4">
+    <div className="ats-app">
+      <div className="ats-container">
 
-      <h2 className="text-center mb-4">
-        AI ATS Resume Checker
-      </h2>
+        {/* Header */}
+        <div className="ats-header">
+          <h1>AI ATS Resume Checker</h1>
+          <p>
+            Upload your resume and compare it with a job description
+            to measure ATS compatibility.
+          </p>
+        </div>
 
-      <input
-        type="file"
-        className="form-control mb-3"
-        onChange={(e) => setFile(e.target.files[0])}
-      />
+        {/* Main Card */}
+        <div className="ats-card">
 
-      <textarea
-        className="form-control mb-3"
-        rows="6"
-        placeholder="Paste Job Description here..."
-        value={jobDescription}
-        onChange={(e) => setJobDescription(e.target.value)}
-      ></textarea>
+          {/* Resume Upload */}
+          <div className="ats-section">
+            <h2>📄 Upload Your Resume</h2>
+            <p>
+              Upload your resume in PDF format to analyze your skills.
+            </p>
 
-      <button
-        className="btn btn-primary w-100"
-        onClick={handleUpload}
-      >
-        Check ATS Score
-      </button>
+            <div className="upload-box">
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => {
+                  setFile(e.target.files[0]);
+                  setScore(null);
+                }}
+              />
 
-      {score !== null && (
-        <>
-          <h3 className="text-center mt-4">
-            ATS Score: {score}/100
-          </h3>
-
-          <div className="progress mt-3">
-            <div
-              className="progress-bar"
-              role="progressbar"
-              style={{ width: `${score}%` }}
-            >
-              {score}%
+              {file && (
+                <p>
+                  Selected file: <strong>{file.name}</strong>
+                </p>
+              )}
             </div>
           </div>
 
-          <h4 className="mt-4 text-success">
-            ✅ Matched Skills
-          </h4>
+          {/* Job Description */}
+          <div className="ats-section">
+            <h2>💼 Job Description</h2>
+            <p>
+              Paste the job description below to identify matching
+              and missing skills.
+            </p>
 
-          <ul>
-            {matchedSkills.map((skill, index) => (
-              <li key={index}>{skill}</li>
-            ))}
-          </ul>
-
-          <h4 className="text-danger">
-            ❌ Missing Skills
-          </h4>
-
-          <ul>
-            {missingSkills.map((skill, index) => (
-              <li key={index}>{skill}</li>
-            ))}
-          </ul>
-
-          <div className="alert alert-warning">
-            💡 {suggestion}
+            <textarea
+              className="job-description"
+              rows="8"
+              placeholder="Paste the job description here..."
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+            />
           </div>
 
-          <button
-            className="btn btn-success"
-            onClick={downloadPDF}
-          >
-            Download PDF Report
-          </button>
-        </>
-      )}
-    </div>
-  </div>
-);
+          {/* Check Button */}
+          <div className="ats-section">
+            <button
+              className="ats-button"
+              onClick={handleUpload}
+              disabled={loading}
+            >
+              {loading ? "⏳ Analyzing Resume..." : "🚀 Check ATS Score"}
+            </button>
+          </div>
 
+          {/* Results */}
+          {score !== null && (
+            <div className="ats-result">
+
+              <h2>📊 ATS Analysis Result</h2>
+
+              <h3>
+                ATS Score: {score}/100
+              </h3>
+
+              <div className="progress mt-3">
+                <div
+                  className="progress-bar"
+                  role="progressbar"
+                  style={{ width: `${score}%` }}
+                >
+                  {score}%
+                </div>
+              </div>
+
+              {/* Matched Skills */}
+              <h4 className="mt-4 text-success">
+                ✅ Matched Skills
+              </h4>
+
+              {matchedSkills.length > 0 ? (
+                <ul>
+                  {matchedSkills.map((skill, index) => (
+                    <li key={index}>{skill}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No matching skills found.</p>
+              )}
+
+              {/* Missing Skills */}
+              <h4 className="text-danger">
+                ❌ Missing Skills
+              </h4>
+
+              {missingSkills.length > 0 ? (
+                <ul>
+                  {missingSkills.map((skill, index) => (
+                    <li key={index}>{skill}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No missing skills found.</p>
+              )}
+
+              {/* Suggestion */}
+              <div className="alert alert-warning">
+                💡 {suggestion}
+              </div>
+
+              {/* PDF */}
+              <button
+                className="btn btn-success"
+                onClick={downloadPDF}
+              >
+                📥 Download PDF Report
+              </button>
+
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default UploadResume;
