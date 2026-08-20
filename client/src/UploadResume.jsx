@@ -53,8 +53,8 @@ function UploadResume() {
       ];
 
       let atsScore = 0;
-      let matched = [];
-      let missing = [];
+      const matched = [];
+      const missing = [];
 
       keywords.forEach((word) => {
         if (resumeText.includes(word) && jdText.includes(word)) {
@@ -85,7 +85,9 @@ function UploadResume() {
       }
     } catch (err) {
       console.error(err);
-      alert("Upload failed. Please make sure the server is running.");
+      alert(
+        "Upload failed. Please make sure the server is running."
+      );
     } finally {
       setLoading(false);
     }
@@ -101,15 +103,59 @@ function UploadResume() {
     doc.text(`ATS Score: ${score}/100`, 20, 40);
 
     doc.text("Matched Skills:", 20, 60);
-    doc.text(matchedSkills.join(", ") || "None", 20, 70);
+    doc.text(
+      matchedSkills.length > 0
+        ? matchedSkills.join(", ")
+        : "None",
+      20,
+      70
+    );
 
     doc.text("Missing Skills:", 20, 90);
-    doc.text(missingSkills.join(", ") || "None", 20, 100);
+    doc.text(
+      missingSkills.length > 0
+        ? missingSkills.join(", ")
+        : "None",
+      20,
+      100
+    );
 
     doc.text("Suggestion:", 20, 120);
-    doc.text(suggestion, 20, 130);
+
+    const suggestionLines = doc.splitTextToSize(
+      suggestion,
+      170
+    );
+
+    doc.text(suggestionLines, 20, 130);
 
     doc.save("ATS_Report.pdf");
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+
+    if (!selectedFile) {
+      return;
+    }
+
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowedTypes.includes(selectedFile.type)) {
+      alert("Please upload a PDF, DOC, or DOCX file.");
+      e.target.value = "";
+      return;
+    }
+
+    setFile(selectedFile);
+    setScore(null);
+    setMatchedSkills([]);
+    setMissingSkills([]);
+    setSuggestion("");
   };
 
   return (
@@ -119,9 +165,10 @@ function UploadResume() {
         {/* Header */}
         <div className="ats-header">
           <h1>AI ATS Resume Checker</h1>
+
           <p>
-            Upload your resume and compare it with a job description
-            to measure ATS compatibility.
+            Upload your resume and compare it with a job
+            description to measure ATS compatibility.
           </p>
         </div>
 
@@ -131,23 +178,23 @@ function UploadResume() {
           {/* Resume Upload */}
           <div className="ats-section">
             <h2>📄 Upload Your Resume</h2>
+
             <p>
-              Upload your resume in PDF format to analyze your skills.
+              Upload your resume in PDF or Word format to
+              analyze your skills.
             </p>
 
             <div className="upload-box">
               <input
                 type="file"
                 accept=".pdf,.doc,.docx"
-                onChange={(e) => {
-                  setFile(e.target.files[0]);
-                  setScore(null);
-                }}
+                onChange={handleFileChange}
               />
 
               {file && (
                 <p>
-                  Selected file: <strong>{file.name}</strong>
+                  Selected file:{" "}
+                  <strong>{file.name}</strong>
                 </p>
               )}
             </div>
@@ -156,9 +203,10 @@ function UploadResume() {
           {/* Job Description */}
           <div className="ats-section">
             <h2>💼 Job Description</h2>
+
             <p>
-              Paste the job description below to identify matching
-              and missing skills.
+              Paste the job description below to identify
+              matching and missing skills.
             </p>
 
             <textarea
@@ -166,7 +214,9 @@ function UploadResume() {
               rows="8"
               placeholder="Paste the job description here..."
               value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
+              onChange={(e) =>
+                setJobDescription(e.target.value)
+              }
             />
           </div>
 
@@ -177,16 +227,29 @@ function UploadResume() {
               onClick={handleUpload}
               disabled={loading}
             >
-              {loading ? "⏳ Analyzing Resume..." : "🚀 Check ATS Score"}
+              {loading
+                ? "⏳ Analyzing Resume..."
+                : "🚀 Check ATS Score"}
             </button>
           </div>
 
+          {/* Loading Message */}
+          {loading && (
+            <div className="loading-message">
+              <p>
+                🔍 Analyzing your resume and comparing
+                skills...
+              </p>
+            </div>
+          )}
+
           {/* Results */}
-          {score !== null && (
+          {score !== null && !loading && (
             <div className="ats-result">
 
               <h2>📊 ATS Analysis Result</h2>
 
+              {/* Score */}
               <h3>
                 ATS Score: {score}/100
               </h3>
@@ -209,7 +272,9 @@ function UploadResume() {
               {matchedSkills.length > 0 ? (
                 <ul>
                   {matchedSkills.map((skill, index) => (
-                    <li key={index}>{skill}</li>
+                    <li key={index}>
+                      {skill}
+                    </li>
                   ))}
                 </ul>
               ) : (
@@ -224,7 +289,9 @@ function UploadResume() {
               {missingSkills.length > 0 ? (
                 <ul>
                   {missingSkills.map((skill, index) => (
-                    <li key={index}>{skill}</li>
+                    <li key={index}>
+                      {skill}
+                    </li>
                   ))}
                 </ul>
               ) : (
@@ -236,7 +303,7 @@ function UploadResume() {
                 💡 {suggestion}
               </div>
 
-              {/* PDF */}
+              {/* PDF Download */}
               <button
                 className="btn btn-success"
                 onClick={downloadPDF}
