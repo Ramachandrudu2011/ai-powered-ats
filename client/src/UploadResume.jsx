@@ -20,12 +20,18 @@ function UploadResume() {
     "css",
     "javascript",
     "node",
-    "node.js",
     "express",
     "mongodb",
     "project",
     "communication",
     "leadership",
+    "git",
+    "github",
+    "api",
+    "rest api",
+    "typescript",
+    "bootstrap",
+    "docker",
   ];
 
   const handleUpload = async () => {
@@ -50,21 +56,18 @@ function UploadResume() {
         formData
       );
 
-      const resumeText = (
-        res.data.resumeText || ""
-      ).toLowerCase();
-
+      const resumeText = res.data.resumeText.toLowerCase();
       const jdText = jobDescription.toLowerCase();
 
       const matched = [];
       const missing = [];
 
-      // Find skills required by the job description
-      const requiredSkills = keywords.filter((skill) => {
-        return jdText.includes(skill);
-      });
+      // Find only the skills required by the job description
+      const requiredSkills = keywords.filter((skill) =>
+        jdText.includes(skill)
+      );
 
-      // Compare resume with required skills
+      // Compare required skills with resume skills
       requiredSkills.forEach((skill) => {
         if (resumeText.includes(skill)) {
           matched.push(skill);
@@ -73,7 +76,7 @@ function UploadResume() {
         }
       });
 
-      // Calculate ATS score based only on required skills
+      // Calculate score based on required skills
       let atsScore = 0;
 
       if (requiredSkills.length > 0) {
@@ -81,26 +84,22 @@ function UploadResume() {
           (matched.length / requiredSkills.length) * 100
         );
       } else {
-        atsScore = 0;
+        atsScore = 100;
       }
 
       setScore(atsScore);
       setMatchedSkills(matched);
       setMissingSkills(missing);
 
-      // Generate suggestion
-      if (requiredSkills.length === 0) {
+      if (missing.length > 0) {
         setSuggestion(
-          "No supported technical skills were detected in the job description."
-        );
-      } else if (missing.length > 0) {
-        setSuggestion(
-          "Consider adding these relevant skills to your resume: " +
-            missing.join(", ")
+          `Add or highlight these skills in your resume: ${missing.join(
+            ", "
+          )}. This may improve your ATS compatibility.`
         );
       } else {
         setSuggestion(
-          "Excellent! Your resume matches all detected job requirements."
+          "Excellent! Your resume matches all the detected skills in the job description."
         );
       }
     } catch (err) {
@@ -126,8 +125,6 @@ function UploadResume() {
 
     doc.setFontSize(14);
     doc.text(`ATS Score: ${score}/100`, 20, 40);
-
-    doc.setFontSize(12);
 
     doc.text("Matched Skills:", 20, 60);
 
@@ -158,23 +155,12 @@ function UploadResume() {
       170
     );
 
-    doc.text(
-      missingLines,
-      20,
-      missingStartY + 10
-    );
+    doc.text(missingLines, 20, missingStartY + 10);
 
     const suggestionStartY =
-      missingStartY +
-      10 +
-      missingLines.length * 7 +
-      15;
+      missingStartY + 20 + missingLines.length * 7;
 
-    doc.text(
-      "Suggestion:",
-      20,
-      suggestionStartY
-    );
+    doc.text("Suggestion:", 20, suggestionStartY);
 
     const suggestionLines = doc.splitTextToSize(
       suggestion,
@@ -204,10 +190,7 @@ function UploadResume() {
     ];
 
     if (!allowedTypes.includes(selectedFile.type)) {
-      alert(
-        "Please upload a PDF, DOC, or DOCX file."
-      );
-
+      alert("Please upload a PDF, DOC, or DOCX file.");
       e.target.value = "";
       return;
     }
@@ -294,7 +277,7 @@ function UploadResume() {
             </button>
           </div>
 
-          {/* Loading */}
+          {/* Loading Message */}
           {loading && (
             <div className="loading-message">
               <p>
@@ -310,7 +293,6 @@ function UploadResume() {
 
               <h2>📊 ATS Analysis Result</h2>
 
-              {/* Score */}
               <h3>
                 ATS Score: {score}/100
               </h3>
@@ -319,37 +301,10 @@ function UploadResume() {
                 <div
                   className="progress-bar"
                   role="progressbar"
-                  style={{
-                    width: `${score}%`,
-                  }}
+                  style={{ width: `${score}%` }}
                 >
                   {score}%
                 </div>
-              </div>
-
-              {/* Skill Summary */}
-              <div className="skill-summary">
-                <p>
-                  <strong>
-                    Required Skills:
-                  </strong>{" "}
-                  {matchedSkills.length +
-                    missingSkills.length}
-                </p>
-
-                <p>
-                  <strong>
-                    Matched:
-                  </strong>{" "}
-                  {matchedSkills.length}
-                </p>
-
-                <p>
-                  <strong>
-                    Missing:
-                  </strong>{" "}
-                  {missingSkills.length}
-                </p>
               </div>
 
               {/* Matched Skills */}
@@ -359,60 +314,17 @@ function UploadResume() {
 
               {matchedSkills.length > 0 ? (
                 <ul>
-                  {matchedSkills.map(
-                    (skill, index) => (
-                      <li key={index}>
-                        {skill}
-                      </li>
-                    )
-                  )}
+                  {matchedSkills.map((skill, index) => (
+                    <li key={index}>
+                      {skill}
+                    </li>
+                  ))}
                 </ul>
               ) : (
-                <p>
-                  No matching skills found.
-                </p>
+                <p>No matching skills found.</p>
               )}
 
               {/* Missing Skills */}
               <h4 className="text-danger">
                 ❌ Missing Skills
               </h4>
-
-              {missingSkills.length > 0 ? (
-                <ul>
-                  {missingSkills.map(
-                    (skill, index) => (
-                      <li key={index}>
-                        {skill}
-                      </li>
-                    )
-                  )}
-                </ul>
-              ) : (
-                <p>
-                  No missing skills found.
-                </p>
-              )}
-
-              {/* Suggestion */}
-              <div className="alert alert-warning">
-                💡 {suggestion}
-              </div>
-
-              {/* PDF */}
-              <button
-                className="btn btn-success"
-                onClick={downloadPDF}
-              >
-                📥 Download PDF Report
-              </button>
-
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default UploadResume;
