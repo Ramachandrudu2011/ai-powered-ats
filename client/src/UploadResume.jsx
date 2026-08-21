@@ -62,12 +62,10 @@ function UploadResume() {
       const matched = [];
       const missing = [];
 
-      // Find only the skills required by the job description
       const requiredSkills = keywords.filter((skill) =>
         jdText.includes(skill)
       );
 
-      // Compare required skills with resume skills
       requiredSkills.forEach((skill) => {
         if (resumeText.includes(skill)) {
           matched.push(skill);
@@ -76,7 +74,6 @@ function UploadResume() {
         }
       });
 
-      // Calculate score based on required skills
       let atsScore = 0;
 
       if (requiredSkills.length > 0) {
@@ -113,6 +110,22 @@ function UploadResume() {
     }
   };
 
+  const getScoreRating = () => {
+    if (score >= 80) {
+      return "Excellent";
+    }
+
+    if (score >= 60) {
+      return "Good";
+    }
+
+    if (score >= 40) {
+      return "Needs Improvement";
+    }
+
+    return "Low Match";
+  };
+
   const downloadPDF = () => {
     if (score === null) {
       return;
@@ -126,7 +139,29 @@ function UploadResume() {
     doc.setFontSize(14);
     doc.text(`ATS Score: ${score}/100`, 20, 40);
 
-    doc.text("Matched Skills:", 20, 60);
+    doc.text(`Match Rating: ${getScoreRating()}`, 20, 50);
+
+    doc.text(
+      `Total Required Skills: ${
+        matchedSkills.length + missingSkills.length
+      }`,
+      20,
+      60
+    );
+
+    doc.text(
+      `Matched Skills: ${matchedSkills.length}`,
+      20,
+      70
+    );
+
+    doc.text(
+      `Missing Skills: ${missingSkills.length}`,
+      20,
+      80
+    );
+
+    doc.text("Matched Skills:", 20, 100);
 
     const matchedText =
       matchedSkills.length > 0
@@ -138,10 +173,10 @@ function UploadResume() {
       170
     );
 
-    doc.text(matchedLines, 20, 70);
+    doc.text(matchedLines, 20, 110);
 
     const missingStartY =
-      70 + matchedLines.length * 7 + 10;
+      110 + matchedLines.length * 7 + 10;
 
     doc.text("Missing Skills:", 20, missingStartY);
 
@@ -155,10 +190,16 @@ function UploadResume() {
       170
     );
 
-    doc.text(missingLines, 20, missingStartY + 10);
+    doc.text(
+      missingLines,
+      20,
+      missingStartY + 10
+    );
 
     const suggestionStartY =
-      missingStartY + 20 + missingLines.length * 7;
+      missingStartY +
+      20 +
+      missingLines.length * 7;
 
     doc.text("Suggestion:", 20, suggestionStartY);
 
@@ -293,10 +334,37 @@ function UploadResume() {
 
               <h2>📊 ATS Analysis Result</h2>
 
+              {/* Score */}
               <h3>
                 ATS Score: {score}/100
               </h3>
 
+              {/* Rating */}
+              <p>
+                <strong>Match Rating:</strong>{" "}
+                {getScoreRating()}
+              </p>
+
+              {/* Summary */}
+              <div className="ats-summary">
+                <p>
+                  <strong>Total Required Skills:</strong>{" "}
+                  {matchedSkills.length +
+                    missingSkills.length}
+                </p>
+
+                <p>
+                  <strong>Matched Skills:</strong>{" "}
+                  {matchedSkills.length}
+                </p>
+
+                <p>
+                  <strong>Missing Skills:</strong>{" "}
+                  {missingSkills.length}
+                </p>
+              </div>
+
+              {/* Progress Bar */}
               <div className="progress mt-3">
                 <div
                   className="progress-bar"
@@ -328,3 +396,38 @@ function UploadResume() {
               <h4 className="text-danger">
                 ❌ Missing Skills
               </h4>
+
+              {missingSkills.length > 0 ? (
+                <ul>
+                  {missingSkills.map((skill, index) => (
+                    <li key={index}>
+                      {skill}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No missing skills found.</p>
+              )}
+
+              {/* Suggestion */}
+              <div className="alert alert-warning">
+                💡 {suggestion}
+              </div>
+
+              {/* PDF Download */}
+              <button
+                className="btn btn-success"
+                onClick={downloadPDF}
+              >
+                📥 Download PDF Report
+              </button>
+
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default UploadResume;
