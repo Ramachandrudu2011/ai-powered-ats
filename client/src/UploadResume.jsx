@@ -38,13 +38,18 @@ function UploadResume() {
   const [missingSkills, setMissingSkills] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // -----------------------------
+  // ==============================
   // SELECT RESUME
-  // -----------------------------
+  // ==============================
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
 
     if (!selectedFile) return;
+
+    if (selectedFile.type !== "application/pdf") {
+      alert("Please upload a PDF resume.");
+      return;
+    }
 
     setFile(selectedFile);
     setScore(null);
@@ -53,19 +58,25 @@ function UploadResume() {
     setResumeText("");
   };
 
-  // -----------------------------
+  // ==============================
   // EXTRACT TEXT FROM PDF
-  // -----------------------------
+  // ==============================
   const extractPdfText = async (selectedFile) => {
     const arrayBuffer = await selectedFile.arrayBuffer();
 
-    const pdf = await pdfjsLib.getDocument({
-      data: arrayBuffer,
-    }).promise;
+    const pdf = await pdfjsLib
+      .getDocument({
+        data: arrayBuffer,
+      })
+      .promise;
 
     let extractedText = "";
 
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+    for (
+      let pageNumber = 1;
+      pageNumber <= pdf.numPages;
+      pageNumber++
+    ) {
       const page = await pdf.getPage(pageNumber);
 
       const textContent = await page.getTextContent();
@@ -80,9 +91,9 @@ function UploadResume() {
     return extractedText;
   };
 
-  // -----------------------------
+  // ==============================
   // ANALYZE RESUME
-  // -----------------------------
+  // ==============================
   const analyzeResume = async () => {
     if (!file) {
       alert("Please upload your resume first.");
@@ -94,50 +105,56 @@ function UploadResume() {
       return;
     }
 
-    // Currently PDF text extraction is implemented.
     if (file.type !== "application/pdf") {
-      alert(
-        "For today's version, please upload a PDF resume. DOC/DOCX support will be added in the next step."
-      );
+      alert("Please upload a PDF resume.");
       return;
     }
 
     setLoading(true);
 
     try {
-      // Read actual resume
+      // Read the PDF
       const extractedText = await extractPdfText(file);
+
+      if (!extractedText.trim()) {
+        alert(
+          "Could not extract text from this PDF. Please use a text-based PDF."
+        );
+
+        setLoading(false);
+        return;
+      }
 
       setResumeText(extractedText);
 
+      // Convert both texts to lowercase
       const resume = extractedText.toLowerCase();
       const description = jobDescription.toLowerCase();
 
-      // Find skills that exist in BOTH resume and job description
-      const matched = commonSkills.filter((skill) => {
-        const skillText = skill.toLowerCase();
-
-        return (
-          resume.includes(skillText) &&
-          description.includes(skillText)
-        );
-      });
-
-      // Skills required by job description but not found in resume
-      const missing = commonSkills.filter((skill) => {
-        const skillText = skill.toLowerCase();
-
-        return (
-          description.includes(skillText) &&
-          !resume.includes(skillText)
-        );
-      });
-
-      // If job description contains no known skills
+      // ==============================
+      // FIND SKILLS IN JOB DESCRIPTION
+      // ==============================
       const jobSkills = commonSkills.filter((skill) =>
         description.includes(skill.toLowerCase())
       );
 
+      // ==============================
+      // FIND MATCHED SKILLS
+      // ==============================
+      const matched = jobSkills.filter((skill) =>
+        resume.includes(skill.toLowerCase())
+      );
+
+      // ==============================
+      // FIND MISSING SKILLS
+      // ==============================
+      const missing = jobSkills.filter(
+        (skill) => !resume.includes(skill.toLowerCase())
+      );
+
+      // ==============================
+      // CALCULATE ATS SCORE
+      // ==============================
       let calculatedScore = 0;
 
       if (jobSkills.length > 0) {
@@ -150,21 +167,21 @@ function UploadResume() {
       setMissingSkills(missing);
       setScore(calculatedScore);
 
-      setLoading(false);
+      alert("Resume analyzed successfully!");
     } catch (error) {
       console.error("Resume analysis error:", error);
 
       alert(
         "Unable to read this PDF. Please make sure it is a valid text-based PDF."
       );
-
+    } finally {
       setLoading(false);
     }
   };
 
-  // -----------------------------
-  // DOWNLOAD PDF REPORT
-  // -----------------------------
+  // ==============================
+  // DOWNLOAD ATS REPORT
+  // ==============================
   const downloadReport = () => {
     if (score === null) {
       alert("Please analyze your resume first.");
@@ -182,6 +199,7 @@ function UploadResume() {
     pdf.line(20, 38, 190, 38);
 
     pdf.setFontSize(12);
+
     pdf.text(
       `Resume: ${file?.name || "Resume"}`,
       20,
@@ -195,8 +213,11 @@ function UploadResume() {
 
     let y = 80;
 
-    // Matched Skills
+    // ==============================
+    // MATCHED SKILLS
+    // ==============================
     pdf.text("Matched Skills", 20, y);
+
     y += 8;
 
     if (matchedSkills.length === 0) {
@@ -204,6 +225,11 @@ function UploadResume() {
       y += 7;
     } else {
       matchedSkills.forEach((skill) => {
+        if (y > 270) {
+          pdf.addPage();
+          y = 20;
+        }
+
         pdf.text(`- ${skill}`, 25, y);
         y += 7;
       });
@@ -211,8 +237,11 @@ function UploadResume() {
 
     y += 8;
 
-    // Missing Skills
+    // ==============================
+    // MISSING SKILLS
+    // ==============================
     pdf.text("Missing Skills", 20, y);
+
     y += 8;
 
     if (missingSkills.length === 0) {
@@ -220,20 +249,23 @@ function UploadResume() {
       y += 7;
     } else {
       missingSkills.forEach((skill) => {
-        pdf.text(`- ${skill}`, 25, y);
-        y += 7;
-
         if (y > 270) {
           pdf.addPage();
           y = 20;
         }
+
+        pdf.text(`- ${skill}`, 25, y);
+        y += 7;
       });
     }
 
     y += 10;
 
-    // Suggestions
+    // ==============================
+    // SUGGESTIONS
+    // ==============================
     pdf.text("ATS Improvement Suggestions", 20, y);
+
     y += 8;
 
     const suggestions = [
@@ -257,24 +289,35 @@ function UploadResume() {
       }
 
       pdf.text(lines, 25, y);
+
       y += lines.length * 7;
     });
 
     pdf.save("ATS-Resume-Report.pdf");
   };
 
+  // ==============================
+  // UI
+  // ==============================
   return (
     <div className="ats-page">
 
       {/* HEADER */}
       <header className="top-header">
         <div className="brand">
-          <div className="brand-icon">🤖</div>
+
+          <div className="brand-icon">
+            🤖
+          </div>
 
           <div>
             <h2>ATS Analyzer</h2>
-            <span>AI Resume Intelligence</span>
+
+            <span>
+              AI Resume Intelligence
+            </span>
           </div>
+
         </div>
 
         <div className="header-badge">
@@ -286,6 +329,7 @@ function UploadResume() {
 
         {/* HERO */}
         <section className="hero-section">
+
           <div className="hero-content">
 
             <span className="hero-label">
@@ -298,11 +342,14 @@ function UploadResume() {
             </h1>
 
             <p>
-              Analyze your resume against a job description and discover
-              exactly which skills can improve your ATS compatibility.
+              Analyze your resume against a job
+              description and discover exactly
+              which skills can improve your ATS
+              compatibility.
             </p>
 
           </div>
+
         </section>
 
         {/* INPUT CARD */}
@@ -318,7 +365,9 @@ function UploadResume() {
               </div>
 
               <div>
-                <h3>Upload Resume</h3>
+                <h3>
+                  Upload Resume
+                </h3>
 
                 <p>
                   PDF files supported
@@ -345,7 +394,7 @@ function UploadResume() {
 
               <input
                 type="file"
-                accept=".pdf"
+                accept=".pdf,application/pdf"
                 onChange={handleFileChange}
               />
 
@@ -354,14 +403,20 @@ function UploadResume() {
             {file && (
               <div className="selected-file">
 
-                <span>📄</span>
+                <span>
+                  📄
+                </span>
 
                 <div>
-                  <strong>{file.name}</strong>
+
+                  <strong>
+                    {file.name}
+                  </strong>
 
                   <small>
                     Ready for analysis
                   </small>
+
                 </div>
 
                 <span className="file-check">
@@ -383,11 +438,15 @@ function UploadResume() {
               </div>
 
               <div>
-                <h3>Job Description</h3>
+
+                <h3>
+                  Job Description
+                </h3>
 
                 <p>
                   Paste the job requirements below
                 </p>
+
               </div>
 
             </div>
@@ -447,6 +506,7 @@ Example:
             <div className="result-heading">
 
               <div>
+
                 <span>
                   ANALYSIS COMPLETE
                 </span>
@@ -454,6 +514,7 @@ Example:
                 <h2>
                   Your ATS Analysis
                 </h2>
+
               </div>
 
               <div className="completed">
@@ -512,6 +573,7 @@ Example:
                   </span>
 
                   <div>
+
                     <strong>
                       {matchedSkills.length}
                     </strong>
@@ -519,6 +581,7 @@ Example:
                     <span>
                       Matched Skills
                     </span>
+
                   </div>
 
                 </div>
@@ -530,6 +593,7 @@ Example:
                   </span>
 
                   <div>
+
                     <strong>
                       {missingSkills.length}
                     </strong>
@@ -537,6 +601,7 @@ Example:
                     <span>
                       Missing Skills
                     </span>
+
                   </div>
 
                 </div>
@@ -548,6 +613,7 @@ Example:
                   </span>
 
                   <div>
+
                     <strong>
                       1
                     </strong>
@@ -555,6 +621,7 @@ Example:
                     <span>
                       Resume Analyzed
                     </span>
+
                   </div>
 
                 </div>
@@ -601,7 +668,9 @@ Example:
                         key={index}
                       >
 
-                        <span>✓</span>
+                        <span>
+                          ✓
+                        </span>
 
                         {skill}
 
@@ -639,7 +708,9 @@ Example:
                     </h3>
 
                     <p>
-                      {missingSkills.length} skills to improve
+                      {missingSkills.length}
+                      {" "}
+                      skills to improve
                     </p>
 
                   </div>
@@ -659,7 +730,9 @@ Example:
                         key={index}
                       >
 
-                        <span>+</span>
+                        <span>
+                          +
+                        </span>
 
                         {skill}
 
@@ -775,7 +848,10 @@ Example:
       <footer className="ats-footer">
 
         <div className="footer-brand">
-          🤖 <strong>AI Resume ATS Analyzer</strong>
+          🤖{" "}
+          <strong>
+            AI Resume ATS Analyzer
+          </strong>
         </div>
 
         <div className="footer-links">
@@ -784,13 +860,17 @@ Example:
             Smart Resume Analysis
           </span>
 
-          <span>•</span>
+          <span>
+            •
+          </span>
 
           <span>
             ATS Optimization
           </span>
 
-          <span>•</span>
+          <span>
+            •
+          </span>
 
           <span>
             © 2026 ATS Analyzer

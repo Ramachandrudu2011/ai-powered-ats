@@ -1,37 +1,49 @@
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
+const pdfParse = require("pdf-parse");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const storage = multer.diskStorage({
-  destination: "uploads/",
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
+const upload = multer({
+  storage: multer.memoryStorage(),
 });
 
-const upload = multer({ storage });
-
-app.post("/upload", upload.single("resume"), async (req, res) => {
+app.post("/api/resume/parse", upload.single("resume"), async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({
+        message: "No resume uploaded",
+      });
+    }
+
+    if (req.file.mimetype !== "application/pdf") {
+      return res.status(400).json({
+        message: "Only PDF resumes are supported",
+      });
+    }
+
+    const pdfData = await pdfParse(req.file.buffer);
+
     res.json({
-      success: true,
-      file: req.file.filename,
-      resumeText: "Java Python React SQL Project Communication Leadership",
+      message: "Resume parsed successfully",
+      fileName: req.file.originalname,
+      text: pdfData.text,
     });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error("Resume parsing error:", error);
+
     res.status(500).json({
-      success: false,
-      message: "Upload failed",
+      message: "Failed to parse resume",
     });
   }
 });
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+const PORT = 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
