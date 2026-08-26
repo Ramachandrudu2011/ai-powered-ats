@@ -1140,5 +1140,6 @@ body {
   .score-circle::before {
     width: 135px;
     height: 135px;
+    padding:20px;
   }
 }
