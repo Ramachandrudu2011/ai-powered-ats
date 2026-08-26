@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import jsPDF from "jspdf";
+import * as pdfjsLib from "pdfjs-dist";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker.mjs?url";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 const commonSkills = [
   "HTML",
@@ -28,23 +32,58 @@ const commonSkills = [
 function UploadResume() {
   const [file, setFile] = useState(null);
   const [jobDescription, setJobDescription] = useState("");
+  const [resumeText, setResumeText] = useState("");
   const [score, setScore] = useState(null);
   const [matchedSkills, setMatchedSkills] = useState([]);
   const [missingSkills, setMissingSkills] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // -----------------------------
+  // SELECT RESUME
+  // -----------------------------
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
 
-    if (selectedFile) {
-      setFile(selectedFile);
-      setScore(null);
-      setMatchedSkills([]);
-      setMissingSkills([]);
-    }
+    if (!selectedFile) return;
+
+    setFile(selectedFile);
+    setScore(null);
+    setMatchedSkills([]);
+    setMissingSkills([]);
+    setResumeText("");
   };
 
-  const analyzeResume = () => {
+  // -----------------------------
+  // EXTRACT TEXT FROM PDF
+  // -----------------------------
+  const extractPdfText = async (selectedFile) => {
+    const arrayBuffer = await selectedFile.arrayBuffer();
+
+    const pdf = await pdfjsLib.getDocument({
+      data: arrayBuffer,
+    }).promise;
+
+    let extractedText = "";
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+      const page = await pdf.getPage(pageNumber);
+
+      const textContent = await page.getTextContent();
+
+      const pageText = textContent.items
+        .map((item) => item.str)
+        .join(" ");
+
+      extractedText += pageText + "\n";
+    }
+
+    return extractedText;
+  };
+
+  // -----------------------------
+  // ANALYZE RESUME
+  // -----------------------------
+  const analyzeResume = async () => {
     if (!file) {
       alert("Please upload your resume first.");
       return;
@@ -55,31 +94,77 @@ function UploadResume() {
       return;
     }
 
+    // Currently PDF text extraction is implemented.
+    if (file.type !== "application/pdf") {
+      alert(
+        "For today's version, please upload a PDF resume. DOC/DOCX support will be added in the next step."
+      );
+      return;
+    }
+
     setLoading(true);
 
-    setTimeout(() => {
+    try {
+      // Read actual resume
+      const extractedText = await extractPdfText(file);
+
+      setResumeText(extractedText);
+
+      const resume = extractedText.toLowerCase();
       const description = jobDescription.toLowerCase();
 
-      const matched = commonSkills.filter((skill) =>
+      // Find skills that exist in BOTH resume and job description
+      const matched = commonSkills.filter((skill) => {
+        const skillText = skill.toLowerCase();
+
+        return (
+          resume.includes(skillText) &&
+          description.includes(skillText)
+        );
+      });
+
+      // Skills required by job description but not found in resume
+      const missing = commonSkills.filter((skill) => {
+        const skillText = skill.toLowerCase();
+
+        return (
+          description.includes(skillText) &&
+          !resume.includes(skillText)
+        );
+      });
+
+      // If job description contains no known skills
+      const jobSkills = commonSkills.filter((skill) =>
         description.includes(skill.toLowerCase())
       );
 
-      const missing = commonSkills.filter(
-        (skill) => !description.includes(skill.toLowerCase())
-      );
+      let calculatedScore = 0;
 
-      const calculatedScore = Math.round(
-        (matched.length / commonSkills.length) * 100
-      );
+      if (jobSkills.length > 0) {
+        calculatedScore = Math.round(
+          (matched.length / jobSkills.length) * 100
+        );
+      }
 
       setMatchedSkills(matched);
-      setMissingSkills(missing.slice(0, 8));
+      setMissingSkills(missing);
       setScore(calculatedScore);
 
       setLoading(false);
-    }, 1000);
+    } catch (error) {
+      console.error("Resume analysis error:", error);
+
+      alert(
+        "Unable to read this PDF. Please make sure it is a valid text-based PDF."
+      );
+
+      setLoading(false);
+    }
   };
 
+  // -----------------------------
+  // DOWNLOAD PDF REPORT
+  // -----------------------------
   const downloadReport = () => {
     if (score === null) {
       alert("Please analyze your resume first.");
@@ -97,7 +182,11 @@ function UploadResume() {
     pdf.line(20, 38, 190, 38);
 
     pdf.setFontSize(12);
-    pdf.text(`Resume: ${file?.name || "Resume"}`, 20, 50);
+    pdf.text(
+      `Resume: ${file?.name || "Resume"}`,
+      20,
+      50
+    );
 
     pdf.setFontSize(20);
     pdf.text(`ATS Score: ${score}/100`, 20, 65);
@@ -106,39 +195,67 @@ function UploadResume() {
 
     let y = 80;
 
+    // Matched Skills
     pdf.text("Matched Skills", 20, y);
     y += 8;
 
-    matchedSkills.forEach((skill) => {
-      pdf.text(`✓ ${skill}`, 25, y);
+    if (matchedSkills.length === 0) {
+      pdf.text("No matching skills found.", 25, y);
       y += 7;
-    });
+    } else {
+      matchedSkills.forEach((skill) => {
+        pdf.text(`- ${skill}`, 25, y);
+        y += 7;
+      });
+    }
 
     y += 8;
 
+    // Missing Skills
     pdf.text("Missing Skills", 20, y);
     y += 8;
 
-    missingSkills.forEach((skill) => {
-      pdf.text(`+ ${skill}`, 25, y);
+    if (missingSkills.length === 0) {
+      pdf.text("No major missing skills found.", 25, y);
       y += 7;
-    });
+    } else {
+      missingSkills.forEach((skill) => {
+        pdf.text(`- ${skill}`, 25, y);
+        y += 7;
+
+        if (y > 270) {
+          pdf.addPage();
+          y = 20;
+        }
+      });
+    }
 
     y += 10;
 
-    pdf.text("Suggestions", 20, y);
+    // Suggestions
+    pdf.text("ATS Improvement Suggestions", 20, y);
     y += 8;
 
     const suggestions = [
       "Add important skills from the job description.",
       "Use keywords from the job posting.",
       "Mention relevant project experience.",
-      "Keep the resume ATS-friendly.",
+      "Keep the resume simple and ATS-friendly.",
       "Add measurable achievements.",
+      "Highlight your strongest technical skills.",
     ];
 
     suggestions.forEach((suggestion) => {
-      const lines = pdf.splitTextToSize(`• ${suggestion}`, 165);
+      const lines = pdf.splitTextToSize(
+        `- ${suggestion}`,
+        165
+      );
+
+      if (y > 260) {
+        pdf.addPage();
+        y = 20;
+      }
+
       pdf.text(lines, 25, y);
       y += lines.length * 7;
     });
@@ -191,16 +308,23 @@ function UploadResume() {
         {/* INPUT CARD */}
         <section className="input-card">
 
-          {/* Upload */}
+          {/* RESUME UPLOAD */}
           <div className="input-section">
 
             <div className="section-title">
-              <div className="section-icon purple">📄</div>
+
+              <div className="section-icon purple">
+                📄
+              </div>
 
               <div>
                 <h3>Upload Resume</h3>
-                <p>PDF, DOC or DOCX files supported</p>
+
+                <p>
+                  PDF files supported
+                </p>
               </div>
+
             </div>
 
             <label className="upload-area">
@@ -210,7 +334,9 @@ function UploadResume() {
               </div>
 
               <strong>
-                {file ? "Resume Selected" : "Choose your resume"}
+                {file
+                  ? "Resume Selected"
+                  : "Choose your resume"}
               </strong>
 
               <span>
@@ -219,7 +345,7 @@ function UploadResume() {
 
               <input
                 type="file"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf"
                 onChange={handleFileChange}
               />
 
@@ -227,35 +353,51 @@ function UploadResume() {
 
             {file && (
               <div className="selected-file">
+
                 <span>📄</span>
 
                 <div>
                   <strong>{file.name}</strong>
-                  <small>Ready for analysis</small>
+
+                  <small>
+                    Ready for analysis
+                  </small>
                 </div>
 
-                <span className="file-check">✓</span>
+                <span className="file-check">
+                  ✓
+                </span>
+
               </div>
             )}
 
           </div>
 
-          {/* Job Description */}
+          {/* JOB DESCRIPTION */}
           <div className="input-section">
 
             <div className="section-title">
-              <div className="section-icon blue">💼</div>
+
+              <div className="section-icon blue">
+                💼
+              </div>
 
               <div>
                 <h3>Job Description</h3>
-                <p>Paste the job requirements below</p>
+
+                <p>
+                  Paste the job requirements below
+                </p>
               </div>
+
             </div>
 
             <textarea
               className="job-input"
               value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
+              onChange={(e) =>
+                setJobDescription(e.target.value)
+              }
               placeholder={`Paste the job description here...
 
 Example:
@@ -275,21 +417,24 @@ Example:
 
           </div>
 
+          {/* ANALYZE BUTTON */}
           <button
             className="analyze-button"
             onClick={analyzeResume}
             disabled={loading}
           >
+
             {loading ? (
               <>
                 <span className="spinner"></span>
-                Analyzing Resume...
+                Reading Resume...
               </>
             ) : (
               <>
                 🚀 Analyze ATS Score
               </>
             )}
+
           </button>
 
         </section>
@@ -298,18 +443,26 @@ Example:
         {score !== null && (
           <section className="results-section">
 
+            {/* RESULT HEADER */}
             <div className="result-heading">
+
               <div>
-                <span>ANALYSIS COMPLETE</span>
-                <h2>Your ATS Analysis</h2>
+                <span>
+                  ANALYSIS COMPLETE
+                </span>
+
+                <h2>
+                  Your ATS Analysis
+                </h2>
               </div>
 
               <div className="completed">
                 ✓ Completed
               </div>
+
             </div>
 
-            {/* Score Dashboard */}
+            {/* SCORE DASHBOARD */}
             <div className="score-dashboard">
 
               <div className="score-circle-container">
@@ -320,13 +473,24 @@ Example:
                     "--score": `${score * 3.6}deg`,
                   }}
                 >
+
                   <div className="score-inner">
-                    <strong>{score}</strong>
-                    <span>/ 100</span>
+
+                    <strong>
+                      {score}
+                    </strong>
+
+                    <span>
+                      / 100
+                    </span>
+
                   </div>
+
                 </div>
 
-                <h3>ATS Compatibility</h3>
+                <h3>
+                  ATS Compatibility
+                </h3>
 
                 <p>
                   {score >= 80
@@ -338,141 +502,259 @@ Example:
 
               </div>
 
+              {/* DETAILS */}
               <div className="score-details">
 
                 <div className="detail-card">
-                  <span className="detail-icon green">✓</span>
+
+                  <span className="detail-icon green">
+                    ✓
+                  </span>
 
                   <div>
-                    <strong>{matchedSkills.length}</strong>
-                    <span>Matched Skills</span>
+                    <strong>
+                      {matchedSkills.length}
+                    </strong>
+
+                    <span>
+                      Matched Skills
+                    </span>
                   </div>
+
                 </div>
 
                 <div className="detail-card">
-                  <span className="detail-icon red">+</span>
+
+                  <span className="detail-icon red">
+                    +
+                  </span>
 
                   <div>
-                    <strong>{missingSkills.length}</strong>
-                    <span>Missing Skills</span>
+                    <strong>
+                      {missingSkills.length}
+                    </strong>
+
+                    <span>
+                      Missing Skills
+                    </span>
                   </div>
+
                 </div>
 
                 <div className="detail-card">
-                  <span className="detail-icon blue">📄</span>
+
+                  <span className="detail-icon blue">
+                    📄
+                  </span>
 
                   <div>
-                    <strong>1</strong>
-                    <span>Resume Analyzed</span>
+                    <strong>
+                      1
+                    </strong>
+
+                    <span>
+                      Resume Analyzed
+                    </span>
                   </div>
+
                 </div>
 
               </div>
 
             </div>
 
-            {/* Matched Skills */}
+            {/* MATCHED SKILLS */}
             <div className="result-card matched-card">
 
               <div className="result-card-header">
+
                 <div>
-                  <span className="result-icon green-icon">✓</span>
+
+                  <span className="result-icon green-icon">
+                    ✓
+                  </span>
 
                   <div>
-                    <h3>Matched Skills</h3>
-                    <p>{matchedSkills.length} skills found</p>
+
+                    <h3>
+                      Matched Skills
+                    </h3>
+
+                    <p>
+                      {matchedSkills.length} skills found
+                    </p>
+
                   </div>
+
                 </div>
+
               </div>
 
               <div className="skills-grid">
 
                 {matchedSkills.length > 0 ? (
-                  matchedSkills.map((skill, index) => (
-                    <div className="skill-item matched" key={index}>
-                      <span>✓</span>
-                      {skill}
-                    </div>
-                  ))
+
+                  matchedSkills.map(
+                    (skill, index) => (
+                      <div
+                        className="skill-item matched"
+                        key={index}
+                      >
+
+                        <span>✓</span>
+
+                        {skill}
+
+                      </div>
+                    )
+                  )
+
                 ) : (
-                  <p>No matching skills found.</p>
+
+                  <p>
+                    No matching skills found.
+                  </p>
+
                 )}
 
               </div>
 
             </div>
 
-            {/* Missing Skills */}
+            {/* MISSING SKILLS */}
             <div className="result-card missing-card">
 
               <div className="result-card-header">
+
                 <div>
-                  <span className="result-icon red-icon">!</span>
+
+                  <span className="result-icon red-icon">
+                    !
+                  </span>
 
                   <div>
-                    <h3>Missing Skills</h3>
-                    <p>{missingSkills.length} skills to improve</p>
+
+                    <h3>
+                      Missing Skills
+                    </h3>
+
+                    <p>
+                      {missingSkills.length} skills to improve
+                    </p>
+
                   </div>
+
                 </div>
+
               </div>
 
               <div className="skills-grid">
 
-                {missingSkills.map((skill, index) => (
-                  <div className="skill-item missing" key={index}>
-                    <span>+</span>
-                    {skill}
-                  </div>
-                ))}
+                {missingSkills.length > 0 ? (
+
+                  missingSkills.map(
+                    (skill, index) => (
+                      <div
+                        className="skill-item missing"
+                        key={index}
+                      >
+
+                        <span>+</span>
+
+                        {skill}
+
+                      </div>
+                    )
+                  )
+
+                ) : (
+
+                  <p>
+                    No major missing skills found.
+                  </p>
+
+                )}
 
               </div>
 
             </div>
 
-            {/* Suggestions */}
+            {/* SUGGESTIONS */}
             <div className="suggestions-card">
 
               <div className="suggestion-header">
-                <div className="bulb">💡</div>
+
+                <div className="bulb">
+                  💡
+                </div>
 
                 <div>
-                  <h3>ATS Improvement Suggestions</h3>
+
+                  <h3>
+                    ATS Improvement Suggestions
+                  </h3>
+
                   <p>
-                    Follow these recommendations to improve your resume.
+                    Follow these recommendations
+                    to improve your resume.
                   </p>
+
                 </div>
+
               </div>
 
               <div className="suggestions-list">
 
-                <div>✓ Add important skills from the job description.</div>
+                <div>
+                  ✓ Add important skills from the job description.
+                </div>
 
-                <div>✓ Use the same keywords used in the job posting.</div>
+                <div>
+                  ✓ Use the same keywords used in the job posting.
+                </div>
 
-                <div>✓ Mention relevant project experience.</div>
+                <div>
+                  ✓ Mention relevant project experience.
+                </div>
 
-                <div>✓ Keep your resume simple and ATS-friendly.</div>
+                <div>
+                  ✓ Keep your resume simple and ATS-friendly.
+                </div>
 
-                <div>✓ Add measurable achievements whenever possible.</div>
+                <div>
+                  ✓ Add measurable achievements whenever possible.
+                </div>
 
-                <div>✓ Highlight your strongest technical skills.</div>
+                <div>
+                  ✓ Highlight your strongest technical skills.
+                </div>
 
               </div>
 
             </div>
 
-            {/* Download */}
+            {/* DOWNLOAD */}
             <div className="download-card">
 
               <div>
-                <span className="download-icon">📥</span>
+
+                <span className="download-icon">
+                  📥
+                </span>
 
                 <div>
-                  <h3>Ready to improve your resume?</h3>
+
+                  <h3>
+                    Ready to improve your resume?
+                  </h3>
+
                   <p>
-                    Download your complete ATS analysis report.
+                    Download your complete ATS
+                    analysis report.
                   </p>
+
                 </div>
+
               </div>
 
               <button
@@ -497,11 +779,23 @@ Example:
         </div>
 
         <div className="footer-links">
-          <span>Smart Resume Analysis</span>
+
+          <span>
+            Smart Resume Analysis
+          </span>
+
           <span>•</span>
-          <span>ATS Optimization</span>
+
+          <span>
+            ATS Optimization
+          </span>
+
           <span>•</span>
-          <span>© 2026 ATS Analyzer</span>
+
+          <span>
+            © 2026 ATS Analyzer
+          </span>
+
         </div>
 
       </footer>
