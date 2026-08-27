@@ -1135,6 +1135,7 @@ body {
   .score-circle {
     width: 165px;
     height: 165px;
+    padding:"20px";
   }
 
   .score-circle::before {
