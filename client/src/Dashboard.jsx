@@ -233,6 +233,7 @@ function Dashboard({ score, matchedSkills = [], missingSkills = [] }) {
             borderRadius: "18px",
             padding: "30px",
             textAlign: "center",
+            padding:"20px",
           }}
         >
           <h2 style={{ marginTop: 0 }}>Analysis Summary</h2>
