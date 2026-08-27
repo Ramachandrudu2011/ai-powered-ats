@@ -568,7 +568,8 @@ Teamwork"
                 display: "flex",
                 gap: "15px",
                 flexWrap: "wrap",
-                marginTop: "35px"
+                marginTop: "35px",
+                padding:"20px"
               }}
             >
               <button
