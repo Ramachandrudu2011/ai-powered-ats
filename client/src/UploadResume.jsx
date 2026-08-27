@@ -596,6 +596,7 @@ Teamwork"
                   color: "white",
                   fontWeight: "bold",
                   cursor: "pointer"
+                  padding:"20px";
                 }}
               >
                 📊 View ATS Dashboard
