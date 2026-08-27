@@ -1,201 +1,249 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-function Dashboard() {
-  const [result, setResult] = useState(null);
-
-  useEffect(() => {
-    const savedResult = localStorage.getItem("atsResult");
-
-    if (savedResult) {
-      setResult(JSON.parse(savedResult));
-    }
-  }, []);
-
-  if (!result) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#071a3d",
-          color: "white",
-          textAlign: "center",
-          paddingTop: "80px",
-        }}
-      >
-        <h1>ATS Dashboard</h1>
-
-        <h3>⚠️ No Resume Analysis Found</h3>
-
-        <p>
-          Please upload and analyze your resume first.
-        </p>
-
-        <button
-          onClick={() => {
-            window.location.href = "/";
-          }}
-          style={{
-            padding: "12px 25px",
-            border: "none",
-            borderRadius: "8px",
-            background: "#00bfff",
-            color: "white",
-            cursor: "pointer",
-            fontSize: "16px",
-          }}
-        >
-          Upload Resume
-        </button>
-      </div>
-    );
-  }
+function Dashboard({ score, matchedSkills = [], missingSkills = [] }) {
+  const hasScore = score !== null && score !== undefined;
 
   return (
     <div
       style={{
         minHeight: "100vh",
-        background: "#071a3d",
+        background:
+          "linear-gradient(135deg, #06152f 0%, #082b4f 50%, #03101f 100%)",
         color: "white",
-        padding: "50px",
-        textAlign: "center",
+        padding: "40px 20px",
+        fontFamily: "Arial, sans-serif",
       }}
     >
-      <h1>ATS Dashboard</h1>
-
-      <h2>
-        Resume Uploaded Successfully ✅
-      </h2>
-
-      <p>
-        Resume: <strong>{result.resumeName}</strong>
-      </p>
-
-      {/* ATS SCORE */}
-
       <div
         style={{
-          margin: "30px auto",
-          padding: "30px",
-          maxWidth: "500px",
-          background: "#102a5c",
-          borderRadius: "15px",
+          maxWidth: "900px",
+          margin: "0 auto",
         }}
       >
-        <h2>ATS Score</h2>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: "35px" }}>
+          <h1
+            style={{
+              fontSize: "38px",
+              marginBottom: "10px",
+              fontWeight: "700",
+            }}
+          >
+            ATS Dashboard
+          </h1>
 
-        <div
-          style={{
-            fontSize: "60px",
-            fontWeight: "bold",
-            color:
-              result.score >= 80
-                ? "#00ff88"
-                : result.score >= 50
-                ? "#ffd700"
-                : "#ff5555",
-          }}
-        >
-          {result.score}/100
+          <p
+            style={{
+              fontSize: "18px",
+              color: "#b8c7d9",
+              margin: 0,
+            }}
+          >
+            Your resume analysis results
+          </p>
         </div>
 
-        <p>
-          {result.score >= 80
-            ? "Excellent Match 🎉"
-            : result.score >= 50
-            ? "Good Match 👍"
-            : "Needs Improvement ⚠️"}
-        </p>
-      </div>
+        {/* ATS Score */}
+        <div
+          style={{
+            background: "rgba(255, 255, 255, 0.08)",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            borderRadius: "18px",
+            padding: "30px",
+            textAlign: "center",
+            marginBottom: "25px",
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>ATS Score</h2>
 
-      {/* MATCHED SKILLS */}
-
-      <div
-        style={{
-          margin: "30px auto",
-          padding: "25px",
-          maxWidth: "700px",
-          background: "#102a5c",
-          borderRadius: "15px",
-        }}
-      >
-        <h2>✅ Matched Skills</h2>
-
-        {result.matchedSkills.length > 0 ? (
-          <div>
-            {result.matchedSkills.map((skill, index) => (
-              <span
-                key={index}
-                style={{
-                  display: "inline-block",
-                  margin: "6px",
-                  padding: "8px 15px",
-                  background: "#126b45",
-                  borderRadius: "20px",
-                }}
-              >
-                ✓ {skill}
-              </span>
-            ))}
+          <div
+            style={{
+              fontSize: "52px",
+              fontWeight: "bold",
+              margin: "15px 0",
+            }}
+          >
+            {hasScore ? `${score}/100` : "0/100"}
           </div>
-        ) : (
-          <p>No matching skills found.</p>
-        )}
-      </div>
 
-      {/* MISSING SKILLS */}
+          <p style={{ color: "#c8d5e5" }}>
+            {hasScore
+              ? "Your resume has been analyzed."
+              : "Upload and analyze your resume to get your ATS score."}
+          </p>
+        </div>
 
-      <div
-        style={{
-          margin: "30px auto",
-          padding: "25px",
-          maxWidth: "700px",
-          background: "#102a5c",
-          borderRadius: "15px",
-        }}
-      >
-        <h2>⚠️ Missing Skills</h2>
+        {/* Application Status */}
+        <div
+          style={{
+            background: "rgba(255, 255, 255, 0.08)",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            borderRadius: "18px",
+            padding: "30px",
+            marginBottom: "25px",
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>Application Status</h2>
 
-        {result.missingSkills.length > 0 ? (
-          <div>
-            {result.missingSkills.map((skill, index) => (
-              <span
-                key={index}
-                style={{
-                  display: "inline-block",
-                  margin: "6px",
-                  padding: "8px 15px",
-                  background: "#8b3030",
-                  borderRadius: "20px",
-                }}
-              >
-                + {skill}
+          <p style={{ color: "#c8d5e5" }}>
+            Resume analysis is ready for your job application.
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "15px",
+              marginTop: "20px",
+            }}
+          >
+            <div
+              style={{
+                background: "rgba(255, 255, 255, 0.07)",
+                padding: "20px",
+                borderRadius: "12px",
+              }}
+            >
+              <strong style={{ display: "block", marginBottom: "8px" }}>
+                Resume
+              </strong>
+
+              <span style={{ color: "#55e878" }}>✓ Uploaded</span>
+            </div>
+
+            <div
+              style={{
+                background: "rgba(255, 255, 255, 0.07)",
+                padding: "20px",
+                borderRadius: "12px",
+              }}
+            >
+              <strong style={{ display: "block", marginBottom: "8px" }}>
+                ATS Analysis
+              </strong>
+
+              <span style={{ color: "#55e878" }}>
+                {hasScore ? "✓ Completed" : "○ Pending"}
               </span>
-            ))}
+            </div>
+
+            <div
+              style={{
+                background: "rgba(255, 255, 255, 0.07)",
+                padding: "20px",
+                borderRadius: "12px",
+              }}
+            >
+              <strong style={{ display: "block", marginBottom: "8px" }}>
+                Job Matching
+              </strong>
+
+              <span style={{ color: "#55e878" }}>
+                {hasScore ? "✓ Ready" : "○ Pending"}
+              </span>
+            </div>
           </div>
-        ) : (
-          <p>No missing skills found 🎉</p>
-        )}
+        </div>
+
+        {/* Matched Skills */}
+        <div
+          style={{
+            background: "rgba(255, 255, 255, 0.08)",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            borderRadius: "18px",
+            padding: "30px",
+            marginBottom: "25px",
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>Matched Skills</h2>
+
+          {matchedSkills.length > 0 ? (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "10px",
+              }}
+            >
+              {matchedSkills.map((skill, index) => (
+                <span
+                  key={index}
+                  style={{
+                    background: "rgba(40, 200, 120, 0.18)",
+                    border: "1px solid rgba(40, 200, 120, 0.4)",
+                    color: "#72f5a0",
+                    padding: "8px 14px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  ✓ {skill}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: "#b8c7d9" }}>No matched skills found.</p>
+          )}
+        </div>
+
+        {/* Missing Skills */}
+        <div
+          style={{
+            background: "rgba(255, 255, 255, 0.08)",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            borderRadius: "18px",
+            padding: "30px",
+            marginBottom: "25px",
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>Missing Skills</h2>
+
+          {missingSkills.length > 0 ? (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "10px",
+              }}
+            >
+              {missingSkills.map((skill, index) => (
+                <span
+                  key={index}
+                  style={{
+                    background: "rgba(255, 80, 80, 0.15)",
+                    border: "1px solid rgba(255, 80, 80, 0.4)",
+                    color: "#ff8d8d",
+                    padding: "8px 14px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  ✕ {skill}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: "#b8c7d9" }}>No missing skills found.</p>
+          )}
+        </div>
+
+        {/* Summary */}
+        <div
+          style={{
+            background: "rgba(255, 255, 255, 0.08)",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            borderRadius: "18px",
+            padding: "30px",
+            textAlign: "center",
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>Analysis Summary</h2>
+
+          <p style={{ color: "#c8d5e5", lineHeight: "1.6" }}>
+            Your resume has been evaluated against the provided job
+            requirements. Use the matched and missing skills above to improve
+            your resume and increase your chances of passing ATS screening.
+          </p>
+        </div>
       </div>
-
-      {/* BUTTON */}
-
-      <button
-        onClick={() => {
-          window.location.href = "/";
-        }}
-        style={{
-          marginTop: "20px",
-          padding: "14px 30px",
-          border: "none",
-          borderRadius: "8px",
-          background: "#00bfff",
-          color: "white",
-          fontSize: "16px",
-          cursor: "pointer",
-        }}
-      >
-        Analyze Another Resume
-      </button>
     </div>
   );
 }
