@@ -569,7 +569,6 @@ Teamwork"
                 gap: "15px",
                 flexWrap: "wrap",
                 marginTop: "35px",
-                padding:"20px"
               }}
             >
               <button
@@ -597,7 +596,6 @@ Teamwork"
                   color: "white",
                   fontWeight: "bold",
                   cursor: "pointer"
-                  padding:"20px";
                 }}
               >
                 📊 View ATS Dashboard
