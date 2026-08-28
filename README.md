@@ -26,3 +26,11 @@ npm install
 Start the server:
 
 npm start
+
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone <your-repository-url>
+cd ai-powered-ats
