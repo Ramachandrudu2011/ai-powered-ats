@@ -1,25 +1,28 @@
-# AI-Powered ATS
+# ATS Backend
 
-An AI-powered Applicant Tracking System that helps job seekers analyze their resumes and understand how well they match job requirements.
+This folder contains the backend services for the AI-Powered ATS application.
 
-## Features
+## Purpose
 
-- Resume upload
-- Resume analysis
-- ATS score
-- Job matching
-- Skills analysis
-- Dashboard
-- Resume report
+The backend handles:
 
-## Technologies
+- Resume processing
+- ATS analysis requests
+- API communication
+- Server-side application logic
 
-- React
-- Vite
+## Technology
+
 - Node.js
+- Express.js
 - JavaScript
 
-## Project Structure
+## Running the Server
 
-- `client` - Frontend application
-- `server` - Backend application
+Install dependencies:
+
+npm install
+
+Start the server:
+
+npm start
