@@ -1,29 +1,25 @@
-# ai-powered-ats
 # AI-Powered ATS
 
-## Day 1 - Project Setup
+An AI-powered Applicant Tracking System that helps job seekers analyze their resumes and understand how well they match job requirements.
 
-- Set up the React frontend
-- Configured the Node.js backend
-- Installed project dependencies
-- Successfully ran the application locally
-- Tested resume upload
-- Tested ATS score generation
-- Tested matched and missing skills
-- Tested PDF report generation
+## Features
 
-## Current Status
+- Resume upload
+- Resume analysis
+- ATS score
+- Job matching
+- Skills analysis
+- Dashboard
+- Resume report
 
-## Day 1 Development
+## Technologies
 
-### Completed
-- Project structure configured
-- React frontend configured with Vite
-- Node.js backend configured
-- Resume upload functionality tested
-- ATS score calculation tested
-- Matched skills displayed
-- Missing skills displayed
-- PDF report generation tested
+- React
+- Vite
+- Node.js
+- JavaScript
 
-AI-Powered ATS application is running successfully on localhost.
+## Project Structure
+
+- `client` - Frontend application
+- `server` - Backend application
