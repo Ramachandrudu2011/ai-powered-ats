@@ -1254,3 +1254,71 @@ body {
     align-items: flex-start;
   }
 }
+
+/* ================================
+   ANALYSIS STATISTICS
+================================ */
+
+.statistics-section {
+  margin-top: 25px;
+  padding: 28px;
+  border-radius: 22px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.statistics-section h3 {
+  margin: 0 0 22px;
+  color: white;
+  font-size: 20px;
+}
+
+.statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.stat-card {
+  padding: 20px;
+  text-align: center;
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.45);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  transition: 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(34, 211, 238, 0.4);
+}
+
+.stat-icon {
+  display: block;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.stat-card strong {
+  display: block;
+  color: #67e8f9;
+  font-size: 28px;
+}
+
+.stat-card p {
+  margin: 7px 0 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+@media (max-width: 800px) {
+  .statistics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .statistics-grid {
+    grid-template-columns: 1fr;
+  }
+}

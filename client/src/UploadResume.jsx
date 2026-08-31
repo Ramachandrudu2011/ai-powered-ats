@@ -38,6 +38,9 @@ function UploadResume() {
   const [matchedSkills, setMatchedSkills] = useState([]);
   const [missingSkills, setMissingSkills] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [resumeWordCount, setResumeWordCount] = useState(0);
+  const [jobWordCount, setJobWordCount] = useState(0);
+  const [totalJobSkills, setTotalJobSkills] = useState(0);
 
   // SELECT RESUME
   const handleFileChange = (event) => {
@@ -112,6 +115,19 @@ function UploadResume() {
       const jobSkills = commonSkills.filter((skill) =>
         description.includes(skill.toLowerCase())
       );
+      const resumeWords = extractedText
+  .trim()
+  .split(/\s+/)
+  .filter(Boolean).length;
+
+const jobWords = jobDescription
+  .trim()
+  .split(/\s+/)
+  .filter(Boolean).length;
+
+setResumeWordCount(resumeWords);
+setJobWordCount(jobWords);
+setTotalJobSkills(jobSkills.length);
 
       // Skills matched in resume
       const matched = jobSkills.filter((skill) =>
