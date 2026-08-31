@@ -17,7 +17,7 @@ function Dashboard({ score, matchedSkills = [], missingSkills = [] }) {
       <div
         style={{
           maxWidth: "900px",
-          margin: "0 auto",
+          margin: "auto",
         }}
       >
         {/* Header */}
