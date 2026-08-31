@@ -1,109 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Inter', sans-serif !important;
-  color: #ffffff !important;
-
-  background:
-    radial-gradient(circle at 10% 10%, rgba(124, 58, 237, 0.35), transparent 30%),
-    radial-gradient(circle at 90% 20%, rgba(6, 182, 212, 0.30), transparent 30%),
-    radial-gradient(circle at 50% 90%, rgba(59, 130, 246, 0.25), transparent 35%),
-    linear-gradient(135deg, #080b1f 0%, #111936 45%, #071827 100%) !important;
-
-  background-attachment: fixed;
-}
-
-/* Main page */
+html,
+body,
 #root {
+  width: 100%;
   min-height: 100vh;
 }
 
-/* Headings */
-h1,
-h2,
-h3,
-h4 {
-  color: #ffffff !important;
-}
-
-p,
-label,
-span {
-  color: #dbeafe;
-}
-
-/* Text inputs */
-input,
-textarea,
-select {
-  background: rgba(255, 255, 255, 0.08) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(139, 92, 246, 0.5) !important;
-  border-radius: 12px !important;
-  padding: 12px !important;
-  outline: none;
-  transition: 0.3s ease;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: #22d3ee !important;
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
-}
-
-textarea::placeholder,
-input::placeholder {
-  color: #94a3b8 !important;
-}
-
-/* File input */
-input[type="file"] {
-  background: rgba(255, 255, 255, 0.07) !important;
-  color: #e2e8f0 !important;
-  cursor: pointer;
-}
-
-/* Buttons */
-button {
-  background: linear-gradient(135deg, #7c3aed, #2563eb) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 12px !important;
-  padding: 13px 25px !important;
-  font-weight: 700 !important;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-}
-
-button:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, #8b5cf6, #06b6d4) !important;
-  box-shadow: 0 12px 30px rgba(6, 182, 212, 0.35);
-}
-
-/* Links */
-a {
-  color: #67e8f9 !important;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 9px;
-}
-
-::-webkit-scrollbar-track {
-  background: #080b1f;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(#7c3aed, #06b6d4);
-  border-radius: 10px;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
 }
