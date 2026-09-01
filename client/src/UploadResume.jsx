@@ -42,6 +42,7 @@ function UploadResume() {
   const [resumeWordCount, setResumeWordCount] = useState(0);
   const [jobWordCount, setJobWordCount] = useState(0);
   const [totalJobSkills, setTotalJobSkills] = useState(0);
+  const [analysisTime, setAnalysisTime] = useState("");
 
   // SELECT RESUME
   const handleFileChange = (event) => {
@@ -152,6 +153,7 @@ setTotalJobSkills(jobSkills.length);
       setMatchedSkills(matched);
       setMissingSkills(missing);
       setScore(calculatedScore);
+      setAnalysisTime(new Date().toLocaleString());
 
       alert("Resume analyzed successfully!");
     } catch (error) {
@@ -423,9 +425,16 @@ Example:
                 <h2>Your ATS Analysis</h2>
               </div>
 
-              <div className="completed">
-                ✓ Completed
-              </div>
+            
+                <div className="analysis-completed-box">
+  <div className="completed">
+    ✓ Completed
+  </div>
+
+  <small className="analysis-time">
+    {analysisTime}
+  </small>
+</div>
             </div>
 
             {/* SCORE DASHBOARD */}

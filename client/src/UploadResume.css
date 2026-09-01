@@ -681,3 +681,15 @@
   border-radius: 20px;
   transition: width 0.8s ease;
 }
+
+.analysis-completed-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.analysis-time {
+  color: #94a3b8;
+  font-size: 12px;
+}
