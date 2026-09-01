@@ -444,6 +444,12 @@ Example:
                 </div>
 
                 <h3>ATS Compatibility</h3>
+                <div className="score-progress">
+                  <div 
+                  className="score-progress-fill"
+                  style={{ width:'${score}%'}}
+                  ></div>
+                </div>
 
                 <p>
                   {score >= 90
