@@ -40,6 +40,7 @@ function UploadResume() {
   const [missingSkills, setMissingSkills] = useState([]);
   const [loading, setLoading] = useState(false);
   const [resumeWordCount, setResumeWordCount] = useState(0);
+  const [skillMatchpercentage, setSkillMatchpercentage] = useState(0);
   const [jobWordCount, setJobWordCount] = useState(0);
   const [totalJobSkills, setTotalJobSkills] = useState(0);
   const [analysisTime, setAnalysisTime] = useState("");
