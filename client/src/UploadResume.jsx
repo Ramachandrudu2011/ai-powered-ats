@@ -118,6 +118,17 @@ function UploadResume() {
       const jobSkills = commonSkills.filter((skill) =>
         description.includes(skill.toLowerCase())
       );
+      const jobSkills = commonSkills.filter((skill) =>
+  description.includes(skill.toLowerCase())
+);
+
+if (jobSkills.length === 0) {
+  alert(
+    "No recognizable skills found in the job description. Please include skills such as React, JavaScript, Python, Java, SQL, etc."
+  );
+  setLoading(false);
+  return;
+}
       const resumeWords = extractedText
   .trim()
   .split(/\s+/)
