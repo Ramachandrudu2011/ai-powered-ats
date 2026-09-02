@@ -200,11 +200,17 @@ setTotalJobSkills(jobSkills.length);
     pdf.text(`Resume: ${file?.name || "Resume"}`, 20, 50);
 
     pdf.setFontSize(20);
-    pdf.text(`ATS Score: ${score}/100`, 20, 65);
+pdf.text(`ATS Score: ${score}/100`, 20, 65);
 
-    pdf.setFontSize(12);
+pdf.setFontSize(12);
 
-    let y = 80;
+pdf.text(`Resume Words: ${resumeWordCount}`, 20, 78);
+pdf.text(`Job Description Words: ${jobWordCount}`, 20, 86);
+pdf.text(`Detected Job Skills: ${totalJobSkills}`, 20, 94);
+pdf.text(`Skill Match: ${skillMatchPercentage}%`, 20, 102);
+pdf.text(`Analysis Time: ${analysisTime}`, 20, 110);
+
+let y = 125;
 
     // MATCHED SKILLS
     pdf.text("Matched Skills", 20, y);
