@@ -749,6 +749,5 @@
 @media (max-width: 480px) {
   .analysis-statistics {
     grid-template-columns: 1fr;
-    padding:20px;
   }
 }
